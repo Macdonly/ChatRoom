@@ -12,7 +12,8 @@ void ChatServer::run()
     serversock.listen();
     while(1)
     {
-        serversock.accept();
+	serversock.accept();
+	    //	serversock.recv();
     }    
     cout << "accept() excuted" << endl;
 

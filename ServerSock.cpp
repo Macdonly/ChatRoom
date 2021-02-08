@@ -53,18 +53,44 @@ namespace ChatRoom
 	sockaddr_in client;
 	socklen_t client_addrlen = sizeof(client);
 	int err = ::accept(fd,(struct sockaddr*)&client,&client_addrlen);
-    cout << err << endl;
-    if(err != -1)
+    //cout << err << endl;
+	if(err >= 0)
 	{
-        cout << "connect succeeded "<< endl;
+	    cout << "connect succeeded "<< endl;
 	    cout << "client port: "<<ntohs(client.sin_port) << endl;
+	    recv(err);
 	}
 	else
 	{
 	    exit(0);
-        cout <<"connect failed" << endl;
+	    cout <<"connect failed" << endl;
 	}
 	
+    }
+
+    void ServerSock::recv(int rwsocket)
+    {
+	//char* recvBuf = new char[20];
+	char recvBuf[20];
+	memset(recvBuf,'\0',20);
+	while(1)
+	{	
+	    int err = ::recv(rwsocket,recvBuf,19,0);
+	    if(err > 0)
+	    {
+		cout <<"接收的字节数："<< err << endl;
+	    	for(int i=0; i<sizeof(recvBuf); i++)
+		{
+		    cout << recvBuf[i];
+		}
+		cout << endl;
+	    }
+	    else
+	    {
+		break;
+	    }
+	    memset(recvBuf,'\0',20);
+	}
     }
 
 }

@@ -19,6 +19,7 @@ namespace ChatRoom
 	void bind();
 	void listen();
 	void accept();
+	void recv(int rwsocket);
     };
 
 
