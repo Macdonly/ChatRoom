@@ -8,30 +8,30 @@
 using namespace std;
 
 int main(int argc, char** argv)
+{
+    if(argc != 3)
     {
-	if(argc != 3)
+	cout <<"Please enter like this: port ip." << argc << endl;
+    }
+    else
+    {
+	int clientFd = socket(PF_INET,SOCK_STREAM,0);
+	sockaddr_in clientAddr;
+	clientAddr.sin_family = AF_INET;
+	clientAddr.sin_port = htons(atoi(argv[1]));
+	clientAddr.sin_addr.s_addr = inet_addr(argv[2]);
+	//bind(clientFd,(struct sockaddr*)&clientAddr,sizeof(clientAddr));
+	int err = connect(clientFd,(struct sockaddr*)&clientAddr,sizeof(clientAddr));
+	//char [] sendBuf ={0};
+	char sendBuf[20] = {0};
+	if(err != -1)
 	{
-	    cout <<"Please enter like this: port ip." << argc << endl;
+	    cout <<"connect succeeded" << endl;        
 	}
 	else
 	{
-	    int clientFd = socket(PF_INET,SOCK_STREAM,0);
-	    sockaddr_in clientAddr;
-	    clientAddr.sin_family = AF_INET;
-	    clientAddr.sin_port = htons(atoi(argv[1]));
-	    clientAddr.sin_addr.s_addr = inet_addr(argv[2]);
-	    //bind(clientFd,(struct sockaddr*)&clientAddr,sizeof(clientAddr));
-	    int err = connect(clientFd,(struct sockaddr*)&clientAddr,sizeof(clientAddr));
-	    //char [] sendBuf ={0};
-	    char sendBuf[20] = {0};
-	if(err != -1)
-        {
-            cout <<"connect succeeded" << endl;        
-        }
-        else
-        {
-            cout <<"connect failed" << endl;        
-        }
+	    cout <<"connect failed" << endl;        
+	}
 
 	while(1)
 	{
@@ -41,10 +41,10 @@ int main(int argc, char** argv)
 	    memset(sendBuf,'\0',20);
 	    cin.clear();
 	}
-	    close(clientFd);
+	close(clientFd);
 
-	}
-		
-	return 0;
-    
     }
+
+    return 0;
+
+}

@@ -3,20 +3,16 @@
 using namespace std;
 namespace ChatRoom
 {
-ChatServer::ChatServer() : serversock(10000,"192.168.232.128"){}
+    ChatServer::ChatServer() : serversock(10000,"192.168.232.128"){}
 
 
-void ChatServer::run()
-{
-    serversock.bind();
-    serversock.listen();
-    while(1)
+    void ChatServer::run()
     {
-	serversock.accept();
-	    //	serversock.recv();
-    }    
-    cout << "accept() excuted" << endl;
+	serversock.bind();
+	serversock.listen();
+	serversock.select(); 
+	cout << "accept() excuted" << endl;
 
-}
+    }
 }
 
