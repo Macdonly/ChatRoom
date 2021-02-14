@@ -10,10 +10,12 @@ void ChatServer::run()
 {
     serversock.bind();
     serversock.listen();
+    
+    //	serversock.accept();
     while(1)
     {
-	serversock.accept();
-	    //	serversock.recv();
+    	serversock.accept();
+	//	cout <<"accept()不阻塞" << endl;
     }    
     cout << "accept() excuted" << endl;
 

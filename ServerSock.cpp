@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <string.h>
 #include "ServerSock.h"
+#include <pthread.h>
+#include <stdlib.h>
 using namespace std;
 namespace ChatRoom
 {
@@ -52,13 +54,16 @@ namespace ChatRoom
     {
 	sockaddr_in client;
 	socklen_t client_addrlen = sizeof(client);
-	int err = ::accept(fd,(struct sockaddr*)&client,&client_addrlen);
+	pthread_t* clientPid = (pthread_t*)malloc(sizeof(pthread_t));
+	int* clientSock = (int*)malloc(sizeof(int));
+	*clientSock = ::accept(fd,(struct sockaddr*)&client,&client_addrlen);
     //cout << err << endl;
-	if(err >= 0)
+	if(*clientSock >= 0)
 	{
-	    cout << "connect succeeded "<< endl;
+            cout << "connect succeeded "<< endl;
 	    cout << "client port: "<<ntohs(client.sin_port) << endl;
-	    recv(err);
+	    cout << "client ip: " << inet_ntoa(client.sin_addr) << endl;
+	    pthread_create(clientPid,NULL,recv,clientSock);
 	}
 	else
 	{
@@ -68,29 +73,48 @@ namespace ChatRoom
 	
     }
 
-    void ServerSock::recv(int rwsocket)
+    void* ServerSock::recv(void* rwsocket)
     {
+	int* rwsocket1 = (int*)rwsocket;
 	//char* recvBuf = new char[20];
 	char recvBuf[20];
 	memset(recvBuf,'\0',20);
 	while(1)
 	{	
-	    int err = ::recv(rwsocket,recvBuf,19,0);
+	    int err = ::recv(*rwsocket1,recvBuf,19,0);// 客户端断开连接则不阻塞返回0
 	    if(err > 0)
 	    {
 		cout <<"接收的字节数："<< err << endl;
-	    	for(int i=0; i<sizeof(recvBuf); i++)
+	    	for(int i=0; i<strlen(recvBuf); i++)
 		{
 		    cout << recvBuf[i];
 		}
 		cout << endl;
+		if(send(*rwsocket1,recvBuf,strlen(recvBuf),0))
+		{
+		    cout << "回发成功" << endl;
+		}
+		else
+		{
+		    cout << "回发失败" << endl;
+		}
+		memset(recvBuf,'\0',20);
 	    }
-	    else
+	    else//客户端断开连接则返回0，跳出循环，且关闭连接
 	    {
-		break;
+		if(shutdown(*rwsocket1,SHUT_RDWR)==0)
+		{
+		    cout << "客户端断开成功" << endl;
+		}
+		else
+		{
+		    cout << "客户端断开失败" << endl;
+		}
+		break; 
 	    }
-	    memset(recvBuf,'\0',20);
-	}
+	    	}
+	void *p = NULL;
+	return p;
     }
 
 }
