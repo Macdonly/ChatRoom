@@ -1,3 +1,4 @@
+#include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -5,6 +6,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <string.h>
+#include <sys/epoll.h>
 #include "ServerSock.h"
 using namespace std;
 namespace ChatRoom
@@ -92,5 +94,61 @@ namespace ChatRoom
 	    memset(recvBuf,'\0',20);
 	}
     }
+    
+    int ServerSock::setNonblock(int fd)
+    {
+	int old_option = fcntl(fd, F_GETFL);
+	int new_option = old_option|O_NONBLOCK;
+	fcntl(fd,F_SETFL, new_option);
+	return old_option;	
+    }
 
+    void ServerSock::addfd(int epollfd, int fd, bool enable_et)
+    {
+	epoll_event event;
+	event.events = EPOLLIN;
+	event.data.fd = fd;
+	if(enable_et)
+	{
+	    event.events |= EPOLLET;	
+	}
+	epoll_ctl(epollfd,EPOLL_CTL_ADD, fd, &event);	 
+	setNonblock(fd); 
+    }	
+    
+    void ServerSock::lt(epoll_event* events, int number, int epollfd, int listenfd)
+    {
+	char recvBuf[20];
+
+	for(int i=0; i<number; i++)
+	{
+	    if(events[i].data.fd == listenfd)
+	    {
+		sockaddr_in clientAddr;
+		socklen_t clientlen = sizeof(clientAddr);
+		int newfd = ::accept(listenfd,(struct sockaddr*)&clientAddr, &clientlen);
+		addfd(epollfd, newfd, false);
+	    }
+	    else if(events[i].events & EPOLLIN)
+	    {
+		memset(recvBuf,'\0',sizeof(recvBuf));
+		int ret = ::recv(events[i].data.fd, recvBuf, 19, 0);
+		if(ret <= 0)
+		{
+		    cout << "client has close the connect" << endl;
+		   // shutdown(events[i].data.fd,SHUT_RDWR);
+		    close(events[i].data.fd); 
+		    perror("recv");
+		    continue;	    
+		}
+		cout << "收到数据：" << ret << endl;
+		cout << recvBuf << endl;
+	    }
+	    else
+	    {
+		cout << "something else happened" << endl;  
+	    }
+	}
+    
+    }
 }
